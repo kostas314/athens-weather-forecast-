@@ -14,7 +14,7 @@ def get_open_meteo_forecast():
             day_temps = data['hourly']['temperature_2m'][i:i+24]
             if day_temps:
                 max_temp = max(day_temps)
-                if 0 <= max_temp <= 50:
+                if 0 <= max_temp <= 30:  # Conservative Athens range
                     temps.append(max_temp)
         return temps
     except:
@@ -31,7 +31,7 @@ def get_met_no_forecast():
         temps = []
         for item in data['properties']['timeseries'][:120]:
             temp = item['data']['instant']['details']['air_temperature']
-            if 0 <= temp <= 50:
+            if 0 <= temp <= 30:  # Conservative Athens range
                 temps.append(temp)
         return temps
     except:
@@ -46,7 +46,7 @@ def get_hnms_forecast():
         if response.status_code == 200 and response.text:
             # Look for a temperature value around Athens in page text.
             values = [float(x) for x in re.findall(r'([-+]?[0-9]+(?:\.[0-9]+)?)\s*°?C', response.text)]
-            values = [v for v in values if 0 <= v <= 50]
+            values = [v for v in values if 0 <= v <= 30]  # Conservative Athens range
             if values:
                 return values
     except Exception:
@@ -65,9 +65,10 @@ def get_emy_forecast():
         if response.status_code == 200 and response.text:
             # Extract temperature values from the page
             values = [float(x) for x in re.findall(r'(\d+(?:\.\d+)?)\s*°?C', response.text)]
-            # More restrictive filtering for EMY - Athens realistic range in winter/spring
-            values = [v for v in values if 0 <= v <= 25]  # Athens winter/spring temps: 0-25°C
-            if values:
+            # Very restrictive filtering for EMY - Athens March realistic range
+            values = [v for v in values if 5 <= v <= 20]  # Conservative Athens March temps: 5-20°C
+            # Additional validation: require at least 2 values and reasonable spread
+            if len(values) >= 2 and max(values) - min(values) <= 10:
                 return values
     except Exception:
         pass
@@ -87,7 +88,7 @@ def get_ecmwf_forecast():
             day_temps = hourly[i:i+24]
             if day_temps:
                 max_temp = max(day_temps)
-                if 0 <= max_temp <= 50:
+                if 0 <= max_temp <= 30:  # Conservative Athens range
                     temps.append(max_temp)
         return temps
     except:

@@ -56,10 +56,10 @@ Total: Approximately 108 data points per run for enhanced statistical robustness
 
 The program ensures reliability by:
 - Using only open, publicly available APIs (no API keys required)
-- Validating temperature values within realistic bounds (0-25°C for Athens winter/spring)
-- Applying source-specific filtering for Hellenic data (EMY restricted to 0-25°C)
+- Validating temperature values within conservative Athens ranges (0-30°C for most sources, 5-20°C for EMY)
+- Applying source-specific filtering for Hellenic data with additional validation
 - Combining independent sources for cross-verification
-- Removing unreliable/intermittent sources
+- Removing unreliable/intermittent sources and unrealistic outliers
 
 ## Statistical Model
 
