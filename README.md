@@ -4,9 +4,9 @@ This Python program collects temperature forecasts for Athens, Greece from relia
 
 ## Features
 
-- Fetches weather data from 5 open sources (including Hellenic sources):
+- Fetches weather data from 4-5 open sources (including Hellenic sources with cross-validation):
   - **HNMS (Hellenic)**: Hellenic National Meteorological Service site scraping, fallback to Open-Meteo when unavailable
-  - **EMY (Hellenic)**: EMY (Hellenic National Meteorological Service) forecasts page scraping
+  - **EMY (Hellenic)**: EMY Hellenic National Meteorological Service forecasts page scraping (only when within ±5°C of HNMS)
   - **Open-Meteo**: Free weather API providing global 5-day hourly forecasts
   - **MET Norway**: Norwegian Meteorological Institute's open weather API with detailed hourly data
   - **ECMWF via Open-Meteo**: Copernicus ECMWF model output accessed through Open-Meteo model parameter
@@ -50,13 +50,14 @@ The program will output:
 - **MET Norway** (https://api.met.no): Norwegian Meteorological Institute's open API with 120-hour forecasts (~88 hourly values)
 - **ECMWF via Open-Meteo**: Copernicus ECMWF weather model accessed through Open-Meteo (~5 daily max values)
 
-Total: Approximately 108 data points per run for enhanced statistical robustness.
+Total: Approximately 105 data points per run for enhanced statistical robustness (EMY included only when cross-validated against HNMS).
 
 ## Data Quality
 
 The program ensures reliability by:
 - Using only open, publicly available APIs (no API keys required)
 - Validating temperature values within conservative Athens ranges (0-30°C for most sources, 5-20°C for EMY)
+- **Cross-validating EMY against HNMS**: EMY data only included when within ±5°C of HNMS average
 - Applying source-specific filtering for Hellenic data with additional validation
 - Combining independent sources for cross-verification
 - Removing unreliable/intermittent sources and unrealistic outliers

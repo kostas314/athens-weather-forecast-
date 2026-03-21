@@ -65,10 +65,10 @@ def get_emy_forecast():
         if response.status_code == 200 and response.text:
             # Extract temperature values from the page
             values = [float(x) for x in re.findall(r'(\d+(?:\.\d+)?)\s*°?C', response.text)]
-            # Very restrictive filtering for EMY - Athens March realistic range
-            values = [v for v in values if 5 <= v <= 20]  # Conservative Athens March temps: 5-20°C
-            # Additional validation: require at least 2 values and reasonable spread
-            if len(values) >= 2 and max(values) - min(values) <= 10:
+            # Less restrictive initial filtering for cross-validation consideration
+            values = [v for v in values if 0 <= v <= 25]  # Allow broader range for validation
+            # Require at least 2 values for meaningful cross-validation
+            if len(values) >= 2:
                 return values
     except Exception:
         pass
@@ -96,9 +96,26 @@ def get_ecmwf_forecast():
 
 
 def collect_forecasts():
+    # Get HNMS first as reference
+    hnms_data = get_hnms_forecast()
+
+    # Get EMY data
+    emy_data = get_emy_forecast()
+
+    # Cross-validate EMY against HNMS (±5°C)
+    validated_emy = None
+    if hnms_data and emy_data:
+        hnms_avg = sum(hnms_data) / len(hnms_data)
+        # Check if all EMY values are within ±5°C of HNMS average
+        if all(abs(temp - hnms_avg) <= 5 for temp in emy_data):
+            validated_emy = emy_data
+            print(f"EMY validated against HNMS (avg: {hnms_avg:.1f}°C, within ±5°C)")
+        else:
+            print(f"EMY rejected - outside ±5°C of HNMS average ({hnms_avg:.1f}°C)")
+
     sources = {
-        'HNMS (Hellenic)': get_hnms_forecast(),
-        'EMY (Hellenic)': get_emy_forecast(),
+        'HNMS (Hellenic)': hnms_data,
+        'EMY (Hellenic)': validated_emy,  # Only include if validated
         'Open-Meteo (default)': get_open_meteo_forecast(),
         'MET Norway': get_met_no_forecast(),
         'Open-Meteo (ECMWF)': get_ecmwf_forecast()
