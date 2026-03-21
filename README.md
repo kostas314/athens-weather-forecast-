@@ -50,13 +50,14 @@ The program will output:
 - **MET Norway** (https://api.met.no): Norwegian Meteorological Institute's open API with 120-hour forecasts (~88 hourly values)
 - **ECMWF via Open-Meteo**: Copernicus ECMWF weather model accessed through Open-Meteo (~5 daily max values)
 
-Total: Approximately 112 data points per run for enhanced statistical robustness.
+Total: Approximately 108 data points per run for enhanced statistical robustness.
 
 ## Data Quality
 
 The program ensures reliability by:
 - Using only open, publicly available APIs (no API keys required)
-- Validating temperature values within realistic bounds
+- Validating temperature values within realistic bounds (0-25°C for Athens winter/spring)
+- Applying source-specific filtering for Hellenic data (EMY restricted to 0-25°C)
 - Combining independent sources for cross-verification
 - Removing unreliable/intermittent sources
 

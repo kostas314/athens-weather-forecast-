@@ -65,7 +65,8 @@ def get_emy_forecast():
         if response.status_code == 200 and response.text:
             # Extract temperature values from the page
             values = [float(x) for x in re.findall(r'(\d+(?:\.\d+)?)\s*°?C', response.text)]
-            values = [v for v in values if 0 <= v <= 50]  # Filter realistic temperatures
+            # More restrictive filtering for EMY - Athens realistic range in winter/spring
+            values = [v for v in values if 0 <= v <= 25]  # Athens winter/spring temps: 0-25°C
             if values:
                 return values
     except Exception:
