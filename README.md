@@ -1,23 +1,23 @@
 # Athens Weather Forecast Estimator
 
-This Python program collects temperature forecasts for Athens, Greece from multiple open data sources, applies data cleaning to ensure recency and validity, models them using statistical measures (mean and standard deviation), and provides an estimation for the next day's temperature in Celsius.
+This Python program collects temperature forecasts for Athens, Greece from reliable open data sources, applies data validation to ensure accuracy, and provides a statistical estimation for the next day's temperature in Celsius.
 
 ## Features
 
-- Fetches weather data from 3 open sources:
-  - Open-Meteo (open-meteo.com)
-  - Hellenic National Meteorological Service (HNMS) XML feed
-  - Wttr.in JSON API
-- Applies data cleaning:
-  - Checks data recency (within 24 hours for most sources, 6 hours for Wttr.in)
-  - Filters temperatures within reasonable range (0°C to 50°C)
-- Collects and combines valid temperature data from all sources
-- Computes mean and standard deviation of collected temperatures
-- Provides an estimation for the next day as mean + 2 * standard deviation
+- Fetches weather data from 2 reliable open sources:
+  - **Open-Meteo**: Free weather API providing global 5-day hourly forecasts
+  - **MET Norway**: Norwegian Meteorological Institute's open weather API with detailed hourly data
+- Applies data validation:
+  - Filters temperatures within realistic range (0°C to 50°C)
+  - Combines hourly forecasts from both sources for robustness
+- Aggregates 90+ validated temperature data points
+- Computes statistical measures: mean, median, standard deviation, and range
+- Provides next-day temperature estimation as: **mean + 2 × standard deviation**
 
 ## Requirements
 
 - Python 3.6+
+- requests library
 
 ## Installation
 
@@ -35,25 +35,29 @@ python weather_forecast.py
 ```
 
 The program will output:
-- Temperature data from each source (if valid)
-- Number of temperature values collected
-- Mean temperature
-- Standard deviation
-- Estimation for next day
+- Temperature data from each source (number of values and range)
+- Total data points collected
+- Mean, median, and standard deviation
+- Temperature range (min/max)
+- Estimation for next day (mean + 2σ)
 
 ## Data Sources
 
-- **Open-Meteo**: Free weather API providing global weather data
-- **MET Norway**: Norwegian Meteorological Institute's open weather API (global coverage)
-- **HNMS**: Official Greek meteorological service XML bulletins
+- **Open-Meteo** (https://open-meteo.com): Free weather API with 5-day hourly forecasts (~5 daily max values)
+- **MET Norway** (https://api.met.no): Norwegian Meteorological Institute's open API with 120-hour forecasts (~88 hourly values)
 
-## Data Cleaning
+Total: Approximately 93 data points per run for statistical robustness.
 
-The program ensures data quality by:
-- Verifying timestamps to use only recently updated data
-- Filtering out unrealistic temperature values
-- Combining data from multiple sources for robustness
+## Data Quality
 
-## Note
+The program ensures reliability by:
+- Using only open, publicly available APIs (no API keys required)
+- Validating temperature values within realistic bounds
+- Combining independent sources for cross-verification
+- Removing unreliable/intermittent sources
 
-This program uses publicly available open data sources. No API keys are required. For more accurate predictions, consider using historical data and machine learning models.
+## Statistical Model
+
+The estimation uses the formula: **Next Day Temp = Mean + 2 × Standard Deviation**
+
+This represents approximately the 97.5th percentile of the distribution, providing a conservative upper-bound estimate for planning purposes.
