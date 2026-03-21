@@ -56,6 +56,23 @@ def get_hnms_forecast():
     return get_open_meteo_forecast()
 
 
+def get_emy_forecast():
+    """Pull EMY (Hellenic National Meteorological Service) data from forecasts page."""
+    import re
+    url = 'https://www.emy.gr/el/forecasts'
+    try:
+        response = requests.get(url, timeout=10, verify=False)
+        if response.status_code == 200 and response.text:
+            # Extract temperature values from the page
+            values = [float(x) for x in re.findall(r'(\d+(?:\.\d+)?)\s*°?C', response.text)]
+            values = [v for v in values if 0 <= v <= 50]  # Filter realistic temperatures
+            if values:
+                return values
+    except Exception:
+        pass
+    return None
+
+
 def get_ecmwf_forecast():
     url = 'https://api.open-meteo.com/v1/forecast?latitude=37.9838&longitude=23.7275&hourly=temperature_2m&forecast_days=5&model=ecmwf&timezone=auto'
     response = requests.get(url, timeout=10)
@@ -78,7 +95,8 @@ def get_ecmwf_forecast():
 
 def collect_forecasts():
     sources = {
-        'HNMS (Hellenic) / Open-Meteo fallback': get_hnms_forecast(),
+        'HNMS (Hellenic)': get_hnms_forecast(),
+        'EMY (Hellenic)': get_emy_forecast(),
         'Open-Meteo (default)': get_open_meteo_forecast(),
         'MET Norway': get_met_no_forecast(),
         'Open-Meteo (ECMWF)': get_ecmwf_forecast()

@@ -4,15 +4,16 @@ This Python program collects temperature forecasts for Athens, Greece from relia
 
 ## Features
 
-- Fetches weather data from 4 open sources (including Hellenic fallback):
+- Fetches weather data from 5 open sources (including Hellenic sources):
   - **HNMS (Hellenic)**: Hellenic National Meteorological Service site scraping, fallback to Open-Meteo when unavailable
+  - **EMY (Hellenic)**: EMY (Hellenic National Meteorological Service) forecasts page scraping
   - **Open-Meteo**: Free weather API providing global 5-day hourly forecasts
   - **MET Norway**: Norwegian Meteorological Institute's open weather API with detailed hourly data
   - **ECMWF via Open-Meteo**: Copernicus ECMWF model output accessed through Open-Meteo model parameter
 - Applies data validation:
   - Filters temperatures within realistic range (0°C to 50°C)
-  - Combines hourly forecasts from both sources for robustness
-- Aggregates 90+ validated temperature data points
+  - Combines hourly forecasts from multiple sources for robustness
+- Aggregates 100+ validated temperature data points
 - Computes statistical measures: mean, median, standard deviation, median absolute deviation (MAD), and trimmed mean
 - Provides multiple next-day estimations:
   - mean + 2 × standard deviation
@@ -43,10 +44,13 @@ The program will output:
 
 ## Data Sources
 
+- **HNMS (Hellenic)** (https://www.hnms.gr): Hellenic National Meteorological Service site scraping
+- **EMY (Hellenic)** (https://www.emy.gr): EMY Hellenic National Meteorological Service forecasts page scraping
 - **Open-Meteo** (https://open-meteo.com): Free weather API with 5-day hourly forecasts (~5 daily max values)
 - **MET Norway** (https://api.met.no): Norwegian Meteorological Institute's open API with 120-hour forecasts (~88 hourly values)
+- **ECMWF via Open-Meteo**: Copernicus ECMWF weather model accessed through Open-Meteo (~5 daily max values)
 
-Total: Approximately 93 data points per run for statistical robustness.
+Total: Approximately 112 data points per run for enhanced statistical robustness.
 
 ## Data Quality
 
