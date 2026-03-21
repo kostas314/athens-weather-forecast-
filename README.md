@@ -4,9 +4,10 @@ This Python program collects temperature forecasts for Athens, Greece from relia
 
 ## Features
 
-- Fetches weather data from 2 reliable open sources:
+- Fetches weather data from 3 reliable open sources:
   - **Open-Meteo**: Free weather API providing global 5-day hourly forecasts
   - **MET Norway**: Norwegian Meteorological Institute's open weather API with detailed hourly data
+  - **ECMWF via Open-Meteo**: Copernicus ECMWF model output accessed through Open-Meteo model parameter
 - Applies data validation:
   - Filters temperatures within realistic range (0°C to 50°C)
   - Combines hourly forecasts from both sources for robustness

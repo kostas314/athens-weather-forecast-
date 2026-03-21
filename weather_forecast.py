@@ -37,10 +37,31 @@ def get_met_no_forecast():
     except:
         return None
 
+def get_ecmwf_forecast():
+    url = 'https://api.open-meteo.com/v1/forecast?latitude=37.9838&longitude=23.7275&hourly=temperature_2m&forecast_days=5&model=ecmwf&timezone=auto'
+    response = requests.get(url, timeout=10)
+    if response.status_code != 200:
+        return None
+    try:
+        data = response.json()
+        temps = []
+        hourly = data.get('hourly', {}).get('temperature_2m', [])
+        for i in range(0, len(hourly), 24):
+            day_temps = hourly[i:i+24]
+            if day_temps:
+                max_temp = max(day_temps)
+                if 0 <= max_temp <= 50:
+                    temps.append(max_temp)
+        return temps
+    except:
+        return None
+
+
 def collect_forecasts():
     sources = {
-        'Open-Meteo': get_open_meteo_forecast(),
-        'MET Norway': get_met_no_forecast()
+        'Open-Meteo (default)': get_open_meteo_forecast(),
+        'MET Norway': get_met_no_forecast(),
+        'Open-Meteo (ECMWF)': get_ecmwf_forecast()
     }
     all_temps = []
     for source, temps in sources.items():
