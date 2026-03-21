@@ -14,17 +14,12 @@ This Python program collects temperature forecasts for Athens, Greece from relia
 - Computes statistical measures: mean, median, standard deviation, and range
 - Provides next-day temperature estimation as: **mean + 2 × standard deviation**
 
-## Requirements
-
-- Python 3.6+
-- requests library
-
 ## Installation
 
 1. Clone or download this repository
-2. Install dependencies:
+2. Install the requests library:
    ```
-   pip install -r requirements.txt
+   pip install requests
    ```
 
 ## Usage
