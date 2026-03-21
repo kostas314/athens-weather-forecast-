@@ -37,41 +37,10 @@ def get_met_no_forecast():
     except:
         return None
 
-def get_open_weather_forecast():
-    """Fetch from wttr.in with robust hourly data parsing"""
-    url = 'https://wttr.in/Athens?format=j1'
-    response = requests.get(url, timeout=5)
-    if response.status_code != 200:
-        return None
-    try:
-        data = response.json()
-        temps = []
-        for day in data.get('weather', []):
-            for hour in day.get('hourly', []):
-                try:
-                    temp = float(hour.get('tempC'))
-                    if 0 <= temp <= 50:
-                        temps.append(temp)
-                except (ValueError, TypeError):
-                    pass
-        return temps if temps else None
-    except Exception:
-        return None
-
-def get_ensemble_forecast():
-    """Create ensemble forecast by combining Open-Meteo and MET Norway"""
-    om_temps = get_open_meteo_forecast()
-    mn_temps = get_met_no_forecast()
-    if om_temps and mn_temps:
-        return om_temps + mn_temps
-    return None
-
 def collect_forecasts():
     sources = {
         'Open-Meteo': get_open_meteo_forecast(),
-        'MET Norway': get_met_no_forecast(),
-        'Wttr.in': get_open_weather_forecast(),
-        'Ensemble': get_ensemble_forecast()
+        'MET Norway': get_met_no_forecast()
     }
     all_temps = []
     for source, temps in sources.items():
@@ -79,7 +48,7 @@ def collect_forecasts():
             print(f"From {source}: {len(temps)} values, range {min(temps):.1f}°C to {max(temps):.1f}°C")
             all_temps.extend(temps)
         else:
-            print(f"No valid data from {source}")
+            print(f"Error fetching from {source}")
     return all_temps
 
 def main():
