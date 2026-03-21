@@ -12,8 +12,11 @@ This Python program collects temperature forecasts for Athens, Greece from relia
   - Filters temperatures within realistic range (0°C to 50°C)
   - Combines hourly forecasts from both sources for robustness
 - Aggregates 90+ validated temperature data points
-- Computes statistical measures: mean, median, standard deviation, and range
-- Provides next-day temperature estimation as: **mean + 2 × standard deviation**
+- Computes statistical measures: mean, median, standard deviation, median absolute deviation (MAD), and trimmed mean
+- Provides multiple next-day estimations:
+  - mean + 2 × standard deviation
+  - median + 2 × MAD
+  - combined improved estimate (average of the above plus trimmed mean)
 
 ## Installation
 

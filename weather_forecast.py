@@ -83,14 +83,30 @@ def main():
     median_temp = statistics.median(temps)
     min_temp = min(temps)
     max_temp = max(temps)
-    estimation = mean_temp + 2 * std_temp
-    
+
+    # Robust statistics
+    deviations = [abs(t - median_temp) for t in temps]
+    mad = statistics.median(deviations)
+    trimmed = sorted(temps)
+    n = len(trimmed)
+    trim_size = max(1, int(n * 0.10))  # 10% trim each side
+    trimmed = trimmed[trim_size:-trim_size] if n > trim_size * 2 else trimmed
+    trimmed_mean = statistics.mean(trimmed)
+
+    estimation_mean2std = mean_temp + 2 * std_temp
+    estimation_mad = median_temp + 2 * mad
+    estimation_combined = (estimation_mean2std + trimmed_mean + estimation_mad) / 3
+
     print(f"\n--- Temperature Analysis (from {len(temps)} data points) ---")
     print(f"Range: {min_temp:.2f}°C to {max_temp:.2f}°C")
     print(f"Mean temperature: {mean_temp:.2f}°C")
     print(f"Median temperature: {median_temp:.2f}°C")
     print(f"Standard deviation: {std_temp:.2f}°C")
-    print(f"\nEstimation for next day (mean + 2*std): {estimation:.2f}°C")
+    print(f"Median absolute deviation: {mad:.2f}°C")
+    print(f"Trimmed mean (10%): {trimmed_mean:.2f}°C")
+    print(f"\nEstimation mean+2sigma: {estimation_mean2std:.2f}°C")
+    print(f"Estimation median+2MAD: {estimation_mad:.2f}°C")
+    print(f"Combined improved estimate: {estimation_combined:.2f}°C")
 
 if __name__ == "__main__":
     main()
