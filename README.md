@@ -19,6 +19,11 @@ This Python program collects temperature forecasts for Athens, Greece from relia
   - mean + 2 × standard deviation
   - median + 2 × MAD
   - combined improved estimate (average of the above plus trimmed mean)
+- **Prediction history & accuracy tracking** (`forecast_history.csv`):
+  - Records each daily prediction automatically
+  - Back-fills actual max temperatures from the Open-Meteo archive API the following day
+  - Computes MAE, bias, and ±2°C / ±4°C success rates over all verified runs
+  - Automatically applies bias correction to the current prediction once ≥ 3 historical runs are available
 
 ## Installation
 
@@ -30,17 +35,24 @@ This Python program collects temperature forecasts for Athens, Greece from relia
 
 ## Usage
 
-Run the script:
+**Python:**
 ```
 python weather_forecast.py
 ```
 
+**Windows (batch file):**
+```
+run_forecast.bat
+```
+Double-click `run_forecast.bat` or run it from the command prompt. It will automatically use the virtual environment if a `.venv` folder is present in the parent directory, otherwise fall back to the system Python.
+
 The program will output:
-- Temperature data from each source (number of values and range)
+- Per-source status: number of values and temperature range
+- Cross-validation result for EMY against HNMS
 - Total data points collected
-- Mean, median, and standard deviation
+- Mean, median, standard deviation, MAD, and trimmed mean
 - Temperature range (min/max)
-- Estimation for next day (mean + 2σ)
+- Three next-day estimations: mean+2σ, median+2MAD, and a combined improved estimate
 
 ## Data Sources
 
