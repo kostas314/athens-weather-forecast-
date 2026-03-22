@@ -1,8 +1,18 @@
 {
   "manifest_version": 2,
   "name": "Athens Weather Forecast",
-  "version": "1.0",
+  "version": "1.0.3",
   "description": "Daily temperature forecast for Athens with multi-source aggregation and accuracy tracking.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "athens-weather-forecast@kostas314",
+      "strict_min_version": "109.0"
+    }
+  },
+  "icons": {
+    "48": "icon.svg",
+    "96": "icon.svg"
+  },
   "permissions": [
     "storage",
     "https://api.open-meteo.com/*",
@@ -12,8 +22,6 @@
   "browser_action": {
     "default_popup": "popup.html",
     "default_title": "Athens Weather Forecast",
-    "default_icon": {
-      "48": "icon48.png"
-    }
+    "default_icon": "icon.svg"
   }
 }

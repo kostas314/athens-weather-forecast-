@@ -1,0 +1,14 @@
+# Build output
+dist/
+
+# AMO upload state
+firefox-extension/.amo-upload-uuid
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db

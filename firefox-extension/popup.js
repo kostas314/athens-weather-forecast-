@@ -149,16 +149,43 @@ function computeMetrics(hist) {
 function fmt(n, d = 2) { return n.toFixed(d); }
 function signFmt(n) { return (n >= 0 ? '+' : '') + fmt(n); }
 
+function clearElement(el) {
+  while (el.firstChild) {
+    el.removeChild(el.firstChild);
+  }
+}
+
+function createDiv(className, text) {
+  const div = document.createElement('div');
+  if (className) div.className = className;
+  if (text !== undefined) div.textContent = text;
+  return div;
+}
+
+function setStatusMessage(el, line1, line2) {
+  clearElement(el);
+  const msg = createDiv('status-msg');
+  msg.textContent = line1;
+  if (line2) {
+    msg.appendChild(document.createElement('br'));
+    msg.appendChild(document.createTextNode(line2));
+  }
+  el.appendChild(msg);
+}
+
 function renderSources(sourcesEl, results) {
-  sourcesEl.innerHTML = '';
+  clearElement(sourcesEl);
   for (const [name, info] of Object.entries(results)) {
-    const card = document.createElement('div');
-    card.className = 'source-card ' + (info.temps ? 'ok' : 'err');
-    card.innerHTML = `<div class="src-name">${name}</div>` +
-      (info.temps
-        ? `<div class="src-val">${info.temps.length} pts &nbsp;` +
-          `${fmt(Math.min(...info.temps), 1)}–${fmt(Math.max(...info.temps), 1)}°C</div>`
-        : `<div class="src-val" style="color:#e74c3c">Unavailable</div>`);
+    const card = createDiv('source-card ' + (info.temps ? 'ok' : 'err'));
+    const srcName = createDiv('src-name', name);
+    const srcVal = createDiv('src-val');
+    if (info.temps) {
+      srcVal.textContent = `${info.temps.length} pts ${fmt(Math.min(...info.temps), 1)}-${fmt(Math.max(...info.temps), 1)}°C`;
+    } else {
+      srcVal.textContent = 'Unavailable';
+    }
+    card.appendChild(srcName);
+    card.appendChild(srcVal);
     sourcesEl.appendChild(card);
   }
 }
@@ -177,67 +204,150 @@ function renderResults(resultsEl, stats, metrics) {
     ['Median + 2·MAD', `${fmt(stats.est_mad)}°C`],
   ];
 
-  let html = '<div class="result-box">';
+  clearElement(resultsEl);
+  const box = createDiv('result-box');
+
   for (const row of rows) {
-    if (!row) { html += '<div style="border-bottom:1px solid #1a2e40;margin:4px 0"></div>'; continue; }
-    html += `<div class="result-row"><span class="label">${row[0]}</span><span class="value">${row[1]}</span></div>`;
+    if (!row) {
+      const separator = document.createElement('div');
+      separator.style.borderBottom = '1px solid #1a2e40';
+      separator.style.margin = '4px 0';
+      box.appendChild(separator);
+      continue;
+    }
+
+    const resultRow = createDiv('result-row');
+    const label = createDiv('label', row[0]);
+    const value = createDiv('value', row[1]);
+    resultRow.appendChild(label);
+    resultRow.appendChild(value);
+    box.appendChild(resultRow);
   }
-  // Combined
-  html += `<div class="result-row highlight"><span class="label">&#10003; Combined estimate</span>` +
-          `<span class="value">${fmt(stats.est_combined)}°C</span></div>`;
-  // Bias-corrected
+
+  const combinedRow = createDiv('result-row highlight');
+  combinedRow.appendChild(createDiv('label', 'Combined estimate'));
+  combinedRow.appendChild(createDiv('value', `${fmt(stats.est_combined)}°C`));
+  box.appendChild(combinedRow);
+
   if (metrics && metrics.n >= 3) {
     const corrected = stats.est_combined - metrics.bias;
     const adjLabel = `Bias-corrected (${signFmt(metrics.bias * -1)}°C adj.)`;
-    html += `<div class="result-row bias-row"><span class="label">${adjLabel}</span>` +
-            `<span class="value">${fmt(corrected)}°C</span></div>`;
+    const correctedRow = createDiv('result-row bias-row');
+    correctedRow.appendChild(createDiv('label', adjLabel));
+    correctedRow.appendChild(createDiv('value', `${fmt(corrected)}°C`));
+    box.appendChild(correctedRow);
   }
-  html += '</div>';
-  resultsEl.innerHTML = html;
+
+  resultsEl.appendChild(box);
 }
 
 function renderAccuracy(el, metrics) {
+  clearElement(el);
   if (!metrics) {
-    el.innerHTML = '<div class="status-msg">No verified predictions yet.<br>Run the forecast daily — actuals are fetched automatically.</div>';
+    setStatusMessage(el, 'No verified predictions yet.', 'Run the forecast daily - actuals are fetched automatically.');
     return;
   }
+
   const biasDir = metrics.bias > 0 ? 'over-predicting' : 'under-predicting';
   const maeClass = metrics.mae <= 2 ? 'good' : metrics.mae <= 4 ? '' : 'bad';
   const biasClass = Math.abs(metrics.bias) <= 1 ? 'good' : Math.abs(metrics.bias) <= 3 ? '' : 'bad';
-  el.innerHTML = `
-    <div class="accuracy-box">
-      <h3>Model Accuracy (${metrics.n} verified predictions)</h3>
-      <div class="acc-grid">
-        <div class="acc-item"><div class="al">MAE</div><div class="av ${maeClass}">${fmt(metrics.mae)}°C</div></div>
-        <div class="acc-item"><div class="al">Bias</div><div class="av ${biasClass}">${signFmt(metrics.bias)}°C <span style="font-weight:400;color:#4a7fa0">(${biasDir})</span></div></div>
-        <div class="acc-item"><div class="al">Within ±2°C</div><div class="av ${metrics.within2 >= 60 ? 'good' : 'bad'}">${fmt(metrics.within2, 1)}%</div></div>
-        <div class="acc-item"><div class="al">Within ±4°C</div><div class="av ${metrics.within4 >= 80 ? 'good' : ''}">${fmt(metrics.within4, 1)}%</div></div>
-      </div>
-    </div>`;
+
+  const box = createDiv('accuracy-box');
+  const title = document.createElement('h3');
+  title.textContent = `Model Accuracy (${metrics.n} verified predictions)`;
+  box.appendChild(title);
+
+  const grid = createDiv('acc-grid');
+  const items = [
+    { label: 'MAE', value: `${fmt(metrics.mae)}°C`, valueClass: maeClass },
+    { label: 'Bias', value: `${signFmt(metrics.bias)}°C (${biasDir})`, valueClass: biasClass },
+    { label: 'Within +/-2°C', value: `${fmt(metrics.within2, 1)}%`, valueClass: metrics.within2 >= 60 ? 'good' : 'bad' },
+    { label: 'Within +/-4°C', value: `${fmt(metrics.within4, 1)}%`, valueClass: metrics.within4 >= 80 ? 'good' : '' },
+  ];
+
+  for (const item of items) {
+    const accItem = createDiv('acc-item');
+    accItem.appendChild(createDiv('al', item.label));
+    const val = createDiv(`av ${item.valueClass}`.trim(), item.value);
+    accItem.appendChild(val);
+    grid.appendChild(accItem);
+  }
+
+  box.appendChild(grid);
+  el.appendChild(box);
 }
 
 function renderHistoryTable(el, hist) {
+  clearElement(el);
   if (!hist.length) {
-    el.innerHTML = '<div class="status-msg">No predictions saved yet.</div>';
+    setStatusMessage(el, 'No predictions saved yet.');
     return;
   }
+
   const sorted = [...hist].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 20);
-  let html = `<table class="hist-table">
-    <thead><tr>
-      <th>Date</th><th>Predicted</th><th>Actual</th><th>Error</th><th>±2°C</th>
-    </tr></thead><tbody>`;
-  for (const r of sorted) {
-    const actual = r.actual_max != null ? fmt(r.actual_max) + '°C' : '<span class="tag-pending">pending</span>';
-    const errStr = r.error != null
-      ? `<span class="${r.error > 0 ? 'err-pos' : 'err-neg'}">${signFmt(r.error)}°C</span>`
-      : '–';
-    const within = r.within_2c == null ? '–'
-      : r.within_2c ? '<span class="tag-yes">Yes</span>' : '<span class="tag-no">No</span>';
-    html += `<tr><td>${r.date}</td><td>${fmt(r.predicted_combined)}°C</td>` +
-            `<td>${actual}</td><td>${errStr}</td><td>${within}</td></tr>`;
+
+  const table = document.createElement('table');
+  table.className = 'hist-table';
+
+  const thead = document.createElement('thead');
+  const headRow = document.createElement('tr');
+  for (const header of ['Date', 'Predicted', 'Actual', 'Error', '+/-2°C']) {
+    const th = document.createElement('th');
+    th.textContent = header;
+    headRow.appendChild(th);
   }
-  html += '</tbody></table>';
-  el.innerHTML = html;
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+
+  for (const r of sorted) {
+    const tr = document.createElement('tr');
+
+    const tdDate = document.createElement('td');
+    tdDate.textContent = r.date;
+    tr.appendChild(tdDate);
+
+    const tdPred = document.createElement('td');
+    tdPred.textContent = `${fmt(r.predicted_combined)}°C`;
+    tr.appendChild(tdPred);
+
+    const tdActual = document.createElement('td');
+    if (r.actual_max != null) {
+      tdActual.textContent = `${fmt(r.actual_max)}°C`;
+    } else {
+      const pending = createDiv('tag-pending', 'pending');
+      tdActual.appendChild(pending);
+    }
+    tr.appendChild(tdActual);
+
+    const tdErr = document.createElement('td');
+    if (r.error != null) {
+      const errSpan = document.createElement('span');
+      errSpan.className = r.error > 0 ? 'err-pos' : 'err-neg';
+      errSpan.textContent = `${signFmt(r.error)}°C`;
+      tdErr.appendChild(errSpan);
+    } else {
+      tdErr.textContent = '-';
+    }
+    tr.appendChild(tdErr);
+
+    const tdWithin = document.createElement('td');
+    if (r.within_2c == null) {
+      tdWithin.textContent = '-';
+    } else {
+      const withinSpan = document.createElement('span');
+      withinSpan.className = r.within_2c ? 'tag-yes' : 'tag-no';
+      withinSpan.textContent = r.within_2c ? 'Yes' : 'No';
+      tdWithin.appendChild(withinSpan);
+    }
+    tr.appendChild(tdWithin);
+
+    tbody.appendChild(tr);
+  }
+
+  table.appendChild(tbody);
+  el.appendChild(table);
 }
 
 // ── Main forecast logic ───────────────────────────────────────────────────────
@@ -248,8 +358,8 @@ async function runForecast() {
   const resultsEl = document.getElementById('results');
   btn.disabled = true;
   btn.textContent = 'Fetching data…';
-  sourcesEl.innerHTML = '';
-  resultsEl.innerHTML = '<div class="status-msg">Contacting weather services…</div>';
+  clearElement(sourcesEl);
+  setStatusMessage(resultsEl, 'Contacting weather services...');
 
   const hist = await backfillActuals(await loadHistory());
   const metrics = computeMetrics(hist);
@@ -269,7 +379,7 @@ async function runForecast() {
 
   const all = Object.values(sourceResults).flatMap(s => s.temps || []);
   if (all.length < 10) {
-    resultsEl.innerHTML = `<div class="status-msg">Not enough data (${all.length} values). Check your connection.</div>`;
+    setStatusMessage(resultsEl, `Not enough data (${all.length} values).`, 'Check your connection.');
     btn.disabled = false;
     btn.textContent = '↻ Run Forecast';
     return;
@@ -313,7 +423,7 @@ async function runForecast() {
 async function refreshHistory() {
   const accEl = document.getElementById('accuracy-section');
   const histEl = document.getElementById('history-table');
-  accEl.innerHTML = '<div class="status-msg">Loading…</div>';
+  setStatusMessage(accEl, 'Loading...');
   const hist = await backfillActuals(await loadHistory());
   renderAccuracy(accEl, computeMetrics(hist));
   renderHistoryTable(histEl, hist);
