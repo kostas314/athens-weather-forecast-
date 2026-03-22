@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Athens Weather Forecast</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f1923;
+      color: #e0e8f0;
+      width: 480px;
+      min-height: 300px;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a3a5c, #0d2137);
+      padding: 14px 18px;
+      border-bottom: 1px solid #1e4a72;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    header h1 { font-size: 15px; font-weight: 600; color: #7ec8e3; }
+    header .subtitle { font-size: 11px; color: #4a7fa0; margin-top: 2px; }
+
+    .tabs {
+      display: flex;
+      background: #0d1e2e;
+      border-bottom: 1px solid #1e3a52;
+    }
+    .tab {
+      flex: 1;
+      padding: 9px 0;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 500;
+      color: #4a7fa0;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab:hover { color: #7ec8e3; }
+    .tab.active { color: #7ec8e3; border-bottom-color: #7ec8e3; }
+
+    .panel { display: none; padding: 14px; }
+    .panel.active { display: block; }
+
+    /* Forecast panel */
+    #refresh-btn {
+      display: block;
+      width: 100%;
+      padding: 9px;
+      background: #1a3a5c;
+      border: 1px solid #1e4a72;
+      border-radius: 6px;
+      color: #7ec8e3;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 14px;
+      transition: background 0.2s;
+    }
+    #refresh-btn:hover { background: #1e4a72; }
+    #refresh-btn:disabled { opacity: 0.5; cursor: default; }
+
+    .source-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .source-card {
+      background: #0d1e2e;
+      border: 1px solid #1e3a52;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 11px;
+    }
+    .source-card .src-name { color: #4a7fa0; margin-bottom: 3px; }
+    .source-card .src-val { color: #e0e8f0; font-weight: 600; }
+    .source-card.ok { border-left: 3px solid #2ecc71; }
+    .source-card.err { border-left: 3px solid #e74c3c; }
+    .source-card.warn { border-left: 3px solid #f39c12; }
+
+    .result-box {
+      background: #0d1e2e;
+      border: 1px solid #1e4a72;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      font-size: 12px;
+      border-bottom: 1px solid #1a2e40;
+    }
+    .result-row:last-child { border-bottom: none; }
+    .result-row .label { color: #4a7fa0; }
+    .result-row .value { color: #e0e8f0; font-weight: 600; }
+    .result-row.highlight .value { color: #7ec8e3; font-size: 14px; }
+    .result-row.bias-row .value { color: #2ecc71; }
+
+    .status-msg {
+      font-size: 12px;
+      color: #4a7fa0;
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    /* History panel */
+    .accuracy-box {
+      background: #0d1e2e;
+      border: 1px solid #1e4a72;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+    }
+    .accuracy-box h3 { font-size: 12px; color: #4a7fa0; margin-bottom: 8px; }
+    .acc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .acc-item { font-size: 11px; }
+    .acc-item .al { color: #4a7fa0; }
+    .acc-item .av { color: #e0e8f0; font-weight: 600; }
+    .acc-item .av.good { color: #2ecc71; }
+    .acc-item .av.bad  { color: #e74c3c; }
+
+    table.hist-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    table.hist-table th {
+      color: #4a7fa0;
+      text-align: left;
+      padding: 4px 6px;
+      border-bottom: 1px solid #1e3a52;
+      font-weight: 500;
+    }
+    table.hist-table td {
+      padding: 5px 6px;
+      border-bottom: 1px solid #0d1e2e;
+      color: #c0ccd8;
+    }
+    table.hist-table tr:last-child td { border-bottom: none; }
+    .tag-yes { color: #2ecc71; font-weight: 600; }
+    .tag-no  { color: #e74c3c; font-weight: 600; }
+    .tag-pending { color: #f39c12; }
+    .err-pos { color: #e74c3c; }
+    .err-neg { color: #3498db; }
+
+    #clear-btn {
+      display: block;
+      width: 100%;
+      margin-top: 12px;
+      padding: 7px;
+      background: transparent;
+      border: 1px solid #3a1e1e;
+      border-radius: 5px;
+      color: #c0504a;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    #clear-btn:hover { background: #1e0d0d; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>&#9729; Athens Weather Forecast</h1>
+      <div class="subtitle">Multi-source statistical temperature estimator</div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="forecast">Forecast</div>
+    <div class="tab" data-tab="history">History &amp; Accuracy</div>
+  </div>
+
+  <!-- FORECAST PANEL -->
+  <div id="forecast" class="panel active">
+    <button id="refresh-btn">&#8635; Run Forecast</button>
+    <div id="sources" class="source-grid"></div>
+    <div id="results"></div>
+  </div>
+
+  <!-- HISTORY PANEL -->
+  <div id="history" class="panel">
+    <div id="accuracy-section"></div>
+    <div id="history-table"></div>
+    <button id="clear-btn">&#128465; Clear all history</button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
