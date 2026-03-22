@@ -13,9 +13,11 @@ def get_open_meteo_forecast():
         for i in range(0, len(data['hourly']['temperature_2m']), 24):
             day_temps = data['hourly']['temperature_2m'][i:i+24]
             if day_temps:
-                max_temp = max(day_temps)
-                if 0 <= max_temp <= 30:  # Conservative Athens range
-                    temps.append(max_temp)
+                day_max = max(day_temps)
+                day_min = min(day_temps)
+                if 0 <= day_max <= 30 and 0 <= day_min <= 30:  # Conservative Athens range
+                    temps.append(day_max)
+                    temps.append(day_min)
         return temps
     except:
         return None
